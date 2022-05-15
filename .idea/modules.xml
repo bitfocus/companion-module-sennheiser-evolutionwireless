@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/companion-module-sennheiser-evolution-wireless.iml" filepath="$PROJECT_DIR$/.idea/companion-module-sennheiser-evolution-wireless.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/companion-module-sennheiser-evolutionwireless.iml" filepath="$PROJECT_DIR$/.idea/companion-module-sennheiser-evolutionwireless.iml" />
     </modules>
   </component>
 </project>
