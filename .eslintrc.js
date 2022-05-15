@@ -13,7 +13,6 @@ module.exports = {
         "@typescript-eslint/no-explicit-any": "off",
         "no-control-regex": "off",
         "@typescript-eslint/ban-ts-comment": "off",
-        "prefer-template": "warn",
-        "quotes": ["error", "double", {"allowTemplateLiterals": true}]
+        "prefer-template": "warn"
     }
 };
