@@ -384,25 +384,35 @@ class SennheiserEvolutionWireless extends instance<{ host: string; deviceType: s
       let split = message.toString().split("\r");
       for (let line of split) {
         line = line.trim();
-        if (line.startsWith("AF")) {
-          let afSplit = line.split(" ");
-
-          this.setVariable("af_peak_1", afSplit[1]);
-          this.setVariable("af_peak_2", afSplit[2]);
-          this.setVariable("af_peak_hold_1", afSplit[3]);
-          this.setVariable("af_peak_hold_2", afSplit[4]);
-        } else if (line.startsWith("States")) {
-          let rfMuteSplit = line.split(" ");
-
-          this.setVariable("rf_mute", rfMuteSplit[1] === "1" ? "on" : "off");
-          this.setVariable("rf_mute_flags", rfMuteSplit[2]);
-        } else if (line.startsWith("Msg")) {
-          if (line.indexOf("AF_Peak") !== -1) {
-            this.setVariable("af_peak", "1");
-          } else {
-            this.setVariable("af_peak", "0");
+        if (line.startsWith("Msg")) {
+          if (this.config.deviceType === "SR") {
+            if (line.indexOf("AF_Peak") !== -1) {
+              this.setVariable("af_peak", "1");
+            } else {
+              this.setVariable("af_peak", "0");
+            }
+          } else if (this.config.deviceType === "EM") {
+            //todo
           }
           this.setVariable("msg", line.replace("Msg", "").trim());
+        }
+
+        if (this.config.deviceType === "SR") {
+          if (line.startsWith("AF")) {
+            let afSplit = line.split(" ");
+
+            this.setVariable("af_peak_1", afSplit[1]);
+            this.setVariable("af_peak_2", afSplit[2]);
+            this.setVariable("af_peak_hold_1", afSplit[3]);
+            this.setVariable("af_peak_hold_2", afSplit[4]);
+          } else if (line.startsWith("States")) {
+            let rfMuteSplit = line.split(" ");
+
+            this.setVariable("rf_mute", rfMuteSplit[1] === "1" ? "on" : "off");
+            this.setVariable("rf_mute_flags", rfMuteSplit[2]);
+          }
+        } else if (this.config.deviceType === "EM") {
+          //todo
         }
       }
     });

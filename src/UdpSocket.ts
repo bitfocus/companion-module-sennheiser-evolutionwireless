@@ -44,7 +44,6 @@ export class UdpSocket extends EventEmitter {
     });
 
     this._socket.on("message", (msg, rinfo) => {
-      //console.log(`[Sennheiser EW] server got: ${msg.toString().replace("\r", "\\r").replace("\n", "\\n")} from ${rinfo.address}:${rinfo.port}`);
       this.emit(`message:${rinfo.address}`, msg, rinfo);
     });
 
