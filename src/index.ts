@@ -7,12 +7,24 @@ import {
 } from "../../../instance_skel_types";
 import { SocketState, UdpSocket } from "./UdpSocket";
 import { Constants } from "./Constants";
+import { MuteToggleUpgrade } from "./upgrade/MuteToggleUpgrade";
 
 class SennheiserEvolutionWireless extends instance<{ host: string; deviceType: string; updateRate: string }> {
   private static Instances: Map<string, SennheiserEvolutionWireless> = new Map<string, SennheiserEvolutionWireless>();
 
+  static GetUpgradeScripts() {
+    return [MuteToggleUpgrade];
+  }
+
+  static DEVELOPER_forceStartupUpgradeScript = 0;
+
   private _socket: UdpSocket;
   private _pushInterval;
+
+  private _deviceConfig: any = {};
+  private _deviceConfigIndex = -1;
+
+  private _muteState: boolean;
 
   constructor(system, id, config) {
     super(system, id, config);
@@ -27,14 +39,35 @@ class SennheiserEvolutionWireless extends instance<{ host: string; deviceType: s
       label: "Mute",
       options: [
         {
-          type: "checkbox",
+          type: "dropdown",
           label: "Mute state",
           id: "mute",
-          default: true,
+          default: "toggle",
+          choices: [
+            { id: "mute", label: "Mute" },
+            { id: "unmute", label: "Unmute" },
+            { id: "toggle", label: "Toggle" },
+          ],
         },
       ],
       callback: (args) => {
-        this._socket.send(`Mute ${args.options.mute ? "1" : "0"}\r`, this.config.host);
+        let wantedState = "";
+
+        if (args.options.mute === "mute") {
+          wantedState = "1";
+        } else if (args.options.mute === "unmute") {
+          wantedState = "0";
+        } else if (args.options.mute === "toggle") {
+          if (this._muteState) {
+            wantedState = "0";
+          } else {
+            wantedState = "1";
+          }
+        } else {
+          throw new Error(`Unrecognized value for action mute: ${args.options.mute}`);
+        }
+
+        this._socket.send(`Mute ${wantedState}\r`, this.config.host);
       },
       description: "Set the mute status of a EW Wireless base unit",
     };
@@ -263,6 +296,14 @@ class SennheiserEvolutionWireless extends instance<{ host: string; deviceType: s
       label: "Messages",
     });
 
+    variables.push({
+      name: "name",
+      label: "Name",
+    });
+    variables.push({
+      name: "frequency",
+      label: "Frequency",
+    });
     if (this.config.deviceType === "SR") {
       variables.push({
         name: "af_peak_1",
@@ -293,6 +334,41 @@ class SennheiserEvolutionWireless extends instance<{ host: string; deviceType: s
       variables.push({
         name: "af_peak",
         label: "AF Peak",
+      });
+
+      variables.push({
+        name: "sensitivity",
+        label: "Analog Input Sensitivity",
+      });
+
+      variables.push({
+        name: "mode",
+        label: "Mode",
+      });
+
+      variables.push({
+        name: "equalizer_state",
+        label: "Equalizer State",
+      });
+      variables.push({
+        name: "equalizer_low",
+        label: "Equalizer Low",
+      });
+      variables.push({
+        name: "equalizer_low_mid",
+        label: "Equalizer Low Mid",
+      });
+      variables.push({
+        name: "equalizer_mid",
+        label: "Equalizer Mid",
+      });
+      variables.push({
+        name: "equalizer_mid_high",
+        label: "Equalizer Mid High",
+      });
+      variables.push({
+        name: "equalizer_high",
+        label: "Equalizer High",
       });
     }
 
@@ -384,6 +460,7 @@ class SennheiserEvolutionWireless extends instance<{ host: string; deviceType: s
       let split = message.toString().split("\r");
       for (let line of split) {
         line = line.trim();
+        let lineSplit = line.split(" ");
         if (line.startsWith("Msg")) {
           if (this.config.deviceType === "SR") {
             if (line.indexOf("AF_Peak") !== -1) {
@@ -395,21 +472,72 @@ class SennheiserEvolutionWireless extends instance<{ host: string; deviceType: s
             //todo
           }
           this.setVariable("msg", line.replace("Msg", "").trim());
+        } else if (line.startsWith("Name")) {
+          this._deviceConfig.name = lineSplit[1].trim();
+          this.setVariable("name", this._deviceConfig.name);
+        } else if (line.startsWith("Frequency")) {
+          this._deviceConfig.frequencyRaw = lineSplit[1].trim();
+          this._deviceConfig.frequency = `${this._deviceConfig.frequencyRaw.substring(
+            0,
+            3
+          )}.${this._deviceConfig.frequencyRaw.substring(3)}`;
+          this.setVariable("frequency", this._deviceConfig.frequency);
+        } else if (line.startsWith("Config")) {
+          let confVersion = parseInt(lineSplit[1].trim());
+          if (confVersion !== this._deviceConfigIndex) {
+            this._socket.send(`Frequency\r`, this.config.host);
+            this._socket.send(`Name\r`, this.config.host);
+
+            if (this.config.deviceType === "SR") {
+              this._socket.send(`Sensitivity\r`, this.config.host);
+              this._socket.send(`Equalizer\r`, this.config.host);
+              this._socket.send(`Mode\r`, this.config.host);
+            } else if (this.config.deviceType == "EM") {
+              //todo add values specific to receivers
+            }
+          }
         }
 
         if (this.config.deviceType === "SR") {
           if (line.startsWith("AF")) {
-            let afSplit = line.split(" ");
-
-            this.setVariable("af_peak_1", afSplit[1]);
-            this.setVariable("af_peak_2", afSplit[2]);
-            this.setVariable("af_peak_hold_1", afSplit[3]);
-            this.setVariable("af_peak_hold_2", afSplit[4]);
+            this.setVariables({
+              af_peak_1: lineSplit[1],
+              af_peak_2: lineSplit[2],
+              af_peak_hold_1: lineSplit[3],
+              af_peak_hold_2: lineSplit[4],
+            });
           } else if (line.startsWith("States")) {
-            let rfMuteSplit = line.split(" ");
+            this.setVariables({
+              rf_mute: lineSplit[1] === "1" ? "on" : "off",
+              rf_mute_flags: lineSplit[2],
+            });
 
-            this.setVariable("rf_mute", rfMuteSplit[1] === "1" ? "on" : "off");
-            this.setVariable("rf_mute_flags", rfMuteSplit[2]);
+            this._muteState = lineSplit[1] === "1";
+          } else if (line.startsWith("Sensitivity")) {
+            let sensitivity = parseInt(lineSplit[1].trim());
+            this._deviceConfig.sensitivity = sensitivity;
+            this.setVariable("sensitivity", sensitivity.toString());
+          } else if (line.startsWith("Mode")) {
+            this._deviceConfig.mode = lineSplit[1].trim() === "1" ? "stereo" : "mono";
+            this.setVariable("mode", this._deviceConfig.mode);
+          } else if (line.startsWith("Equalizer")) {
+            this._deviceConfig.equalizer = this._deviceConfig.equalizer || {};
+
+            this._deviceConfig.equalizer.enabled = lineSplit[1].trim() === "1";
+            this._deviceConfig.equalizer.low = parseInt(lineSplit[2].trim());
+            this._deviceConfig.equalizer.lowMid = parseInt(lineSplit[3].trim());
+            this._deviceConfig.equalizer.mid = parseInt(lineSplit[4].trim());
+            this._deviceConfig.equalizer.midHigh = parseInt(lineSplit[5].trim());
+            this._deviceConfig.equalizer.high = parseInt(lineSplit[6].trim());
+
+            this.setVariables({
+              equalizer_state: this._deviceConfig.equalizer.enabled ? "on" : "off",
+              equalizer_low: this._deviceConfig.equalizer.low,
+              equalizer_low_mid: this._deviceConfig.equalizer.lowMid,
+              equalizer_mid: this._deviceConfig.equalizer.mid,
+              equalizer_mid_high: this._deviceConfig.equalizer.midHigh,
+              equalizer_high: this._deviceConfig.equalizer.high,
+            });
           }
         } else if (this.config.deviceType === "EM") {
           //todo
