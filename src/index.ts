@@ -16,7 +16,7 @@ class SennheiserEvolutionWireless extends instance<{ host: string; deviceType: s
     return [MuteToggleUpgrade];
   }
 
-  static DEVELOPER_forceStartupUpgradeScript = 0;
+  //static DEVELOPER_forceStartupUpgradeScript = 0;
 
   private _socket: UdpSocket;
   private _pushInterval;
