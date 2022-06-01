@@ -1,7 +1,7 @@
 {
   "name": "sennheiser-evolutionwireless",
-  "version": "1.0.1",
-  "api_version": "1.0.1",
+  "version": "1.0.2",
+  "api_version": "1.0.2",
   "keywords": [
     "RF",
     "Sennheiser EW",
@@ -13,8 +13,8 @@
   "description": "Control Evolution Wireless Units",
   "main": "lib/index.js",
   "scripts": {
-    "build": "npm run build-ts",
-    "build-ts": "tsc",
+		"postinstall": "yarn build",
+		"build": "npx rimraf dist && npx typescript@~4.6",
     "watch-ts": "tsc -w",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
@@ -27,7 +27,7 @@
     "eslint": "^8.15.0",
     "prettier": "2.6.2",
     "ts-node": "^10.7.0",
-    "typescript": "^4.6.4"
+    "typescript": "~4.6"
   },
   "bugs": {
     "url": "https://github.com/Fuechschen/companion-module-sennheiser-evolution-wireless/issues"
