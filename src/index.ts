@@ -283,6 +283,88 @@ class SennheiserEvolutionWireless extends instance<{ host: string; deviceType: s
         },
         description: "Set the transmission mode of a EW Wireless SR base unit",
       };
+    } else if (this.config.deviceType === "EM") {
+      actions[Constants.ActionNames.AF_OUT_NUDGE] = {
+        label: "Nudge AfOut",
+        options: [
+          {
+            type: "dropdown",
+            label: "Direction",
+            id: "dir",
+            default: "up",
+            choices: [
+              { id: "up", label: "up" },
+              { id: "down", label: "down" },
+            ],
+          },
+          {
+            type: "number",
+            label: "Steps",
+            id: "steps",
+            default: 1,
+            range: false,
+            min: 1,
+            max: 20,
+          },
+        ],
+        callback: (args) => {
+          this._socket.send(`AfOut #${args.options.dir === "up" ? "" : "-"}${args.options.steps}\r`, this.config.host);
+        },
+        description: "Increase or decrease the level on the analog output",
+      };
+      actions[Constants.ActionNames.AF_OUT] = {
+        label: "Level",
+        options: [
+          {
+            type: "dropdown",
+            label: "Level",
+            id: "level",
+            default: "0",
+            choices: [
+              { id: "18", label: "18" },
+              { id: "15", label: "15" },
+              { id: "12", label: "12" },
+              { id: "9", label: "9" },
+              { id: "6", label: "6" },
+              { id: "3", label: "3" },
+              { id: "0", label: "0" },
+              { id: "-3", label: "-3" },
+              { id: "-6", label: "-6" },
+              { id: "-9", label: "-9" },
+              { id: "-12", label: "-12" },
+              { id: "-15", label: "-15" },
+              { id: "-18", label: "-18" },
+              { id: "-21", label: "-21" },
+              { id: "-24", label: "-24" },
+            ],
+          },
+        ],
+        callback: (args) => {
+          this._socket.send(`AfOut ${args.options.sensitivity}\r`, this.config.host);
+        },
+        description: "Set the level of the analog output",
+      };
+      actions[Constants.ActionNames.EQUALIZER_EM] = {
+        label: "Equalizer",
+        options: [
+          {
+            type: "dropdown",
+            label: "Type",
+            id: "type",
+            default: "0",
+            choices: [
+              { id: "0", label: "flat" },
+              { id: "1", label: "low cut" },
+              { id: "2", label: "low cut and high boost" },
+              { id: "3", label: "high boost" },
+            ],
+          },
+        ],
+        callback: (args) => {
+          this._socket.send(`Equalizer ${args.options.mode}\r`, this.config.host);
+        },
+        description: "Set the equalizer mode of the EM base unit.",
+      };
     }
 
     this.setActions(actions);

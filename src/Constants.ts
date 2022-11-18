@@ -3,6 +3,7 @@ export class Constants {
     MUTE: "sennheiser_ew_mute",
     EQUALIZER_EM: "sennheiser_ew_equalizer_em",
     AF_OUT: "sennheiser_ew_af_out",
+    AF_OUT_NUDGE: "sennheiser_ew_af_out_nudge",
     SQUELCH: "sennheiser_ew_squelch",
     NAME: "sennheiser_ew_name",
     FREQUENCY_NUDGE: "sennheiser_ew_frequency_nudge",
