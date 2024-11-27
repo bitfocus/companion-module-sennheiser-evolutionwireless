@@ -1,41 +1,40 @@
 {
   "name": "sennheiser-evolutionwireless",
-  "version": "1.0.2",
-  "api_version": "1.0.2",
-  "keywords": [
-    "RF",
-    "Sennheiser EW",
-    "Sennheiser Evolution Wireless"
-  ],
-  "manufacturer": "Sennheiser",
-  "product": "Evolution Wireless",
-  "shortname": "EW",
-  "description": "Control Evolution Wireless Units",
-  "main": "lib/index.js",
+  "version": "2.0.0",
+  "main": "dist/index.js",
+  "type": "module",
   "scripts": {
-    "postinstall": "yarn build",
-    "build": "npx rimraf dist && npx typescript@~4.6",
-    "watch-ts": "tsc -w",
-    "build-ts": "tsc",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
+    "postinstall": "husky",
+    "format": "prettier -w .",
+    "package": "yarn build && companion-module-build",
+    "build": "rimraf dist && yarn build:main",
+    "build:main": "tsc -p tsconfig.build.json",
+    "dev": "tsc -p tsconfig.build.json --watch",
+    "lint:raw": "eslint --ext .ts --ext .js --ignore-pattern dist --ignore-pattern pkg",
+    "lint": "yarn lint:raw ."
   },
-  "author": "Fuechschen <me@fuechschen.org>",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "14.17.1",
-    "@typescript-eslint/eslint-plugin": "^5.23.0",
-    "@typescript-eslint/parser": "^5.23.0",
-    "eslint": "^8.15.0",
-    "prettier": "2.6.2",
-    "ts-node": "^10.7.0",
-    "typescript": "~4.6"
+    "@companion-module/tools": "^2.1.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.3"
   },
-  "bugs": {
-    "url": "https://github.com/bitfocus/companion-module-sennheiser-evolutionwireless/issues"
+  "prettier": "@companion-module/tools/.prettierrc.json",
+  "lint-staged": {
+    "*.{css,json,md,scss}": [
+      "prettier --write"
+    ],
+    "*.{ts,tsx,js,jsx}": [
+      "yarn lint:raw --fix"
+    ]
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bitfocus/companion-module-sennheiser-evolutionwireless.git"
   },
-  "homepage": "https://github.com/bitfocus/companion-module-sennheiser-evolutionwireless"
+  "dependencies": {
+    "@companion-module/base": "~1.11.0"
+  }
 }
