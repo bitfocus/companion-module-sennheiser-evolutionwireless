@@ -1,4 +1,4 @@
-import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
+import { InstanceBase, runEntrypoint, SomeCompanionConfigField } from '@companion-module/base'
 import { GetConfigFields, type ModuleConfig } from './config.js'
 import { UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
@@ -28,8 +28,6 @@ export class evolutionInstance extends InstanceBase<ModuleConfig> {
 
 	async init(config: ModuleConfig): Promise<void> {
 		this.config = config
-
-		this.updateStatus(InstanceStatus.Ok)
 
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks

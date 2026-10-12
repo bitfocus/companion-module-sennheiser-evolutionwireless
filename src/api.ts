@@ -25,36 +25,47 @@ export function initConnection(self: evolutionInstance): void {
 	}
 
 	if (self.config.host && self.config.host !== '') {
-		if (self.config.port === undefined) {
-			self.config.port = '53212'
-		}
+			if (self.config.port === undefined) {
+				self.config.port = '53212'
+			}
 
-		self.log('info', `[Sennheiser EW][${self.config.host}] Connecting via UDP Port ${self.config.port}`)
-		self.updateStatus(InstanceStatus.Connecting, 'Connecting') // Set status to Connecting
+			if (Number.isInteger(self.config.port)) {
+				self.updateStatus(InstanceStatus.BadConfig, 'Port missing or not an integer')
+			} else if (self.config.port === '') {
+				self.updateStatus(InstanceStatus.BadConfig, 'Port empty')
+			} else if (Number.isInteger(self.config.port)) {
+				self.updateStatus(InstanceStatus.BadConfig, 'Port is not an integer')
+			} else if (Number(self.config.port) <= 0 || Number(self.config.port) > 65535) {
+				self.updateStatus(InstanceStatus.BadConfig, 'Port is out of range, should be between 1 and 65535 (inclusive)')
+			} else {
+				self.log('info', `[Sennheiser EW][${self.config.host}] Connecting via UDP Port ${self.config.port}`)
 
-		self._socket = self.createSharedUdpSocket('udp4', (msg, rinfo) => checkMessage(self, msg, rinfo))
-		self._socket.bind(self.config.port)
+				self._socket = self.createSharedUdpSocket('udp4', (msg, rinfo) => checkMessage(self, msg, rinfo))
+				self._socket.bind(self.config.port)
 
-		self._socket.on('error', (err: any) => {
-			self.updateStatus(InstanceStatus.ConnectionFailure, err.message)
-			self.log('error', 'Network error: ' + err.message)
-		})
+				self._socket.on('error', (err: any) => {
+					self.updateStatus(InstanceStatus.ConnectionFailure, err.message)
+					self.log('error', 'Network error: ' + err.message)
+				})
 
-		// If we get data, thing should be good
-		self._socket.on('listening', () => {
-			self.updateStatus(InstanceStatus.Ok)
-			startStatusSubscription(self)
-		})
+				// If we get data, thing should be good
+				self._socket.on('listening', () => {
+					self.updateStatus(InstanceStatus.Connecting)
+					startStatusSubscription(self)
+				})
 
-		// This is an unfiltered duplicate from to the UDP port, but possibly not for us
-		// self._socket.on('message', (msg: Buffer) => {
-		// 	console.log('got data: ' + msg.toString())
-		// 	processData(self, msg.toString())
-		// })
+				// This is an unfiltered duplicate from to the UDP port, but possibly not for us
+				// self._socket.on('message', (msg: Buffer) => {
+				// 	console.log('got data: ' + msg.toString())
+				// 	processData(self, msg.toString())
+				// })
 
-		self._socket.on('status_change', (status: any, message: any) => {
-			console.log('status change', status, message)
-		})
+				self._socket.on('status_change', (status: any, message: any) => {
+					console.log('status change', status, message)
+				})
+			}
+	} else {
+		self.updateStatus(InstanceStatus.BadConfig, 'Host missing or empty')
 	}
 }
 
@@ -181,5 +192,9 @@ export function processData(self: evolutionInstance, message: string): void {
 		}
 	}
 
+	// TODO: Debounce this so we only send it on change
+	if (Object.keys(variableObj).length > 0) {
+		self.updateStatus(InstanceStatus.Ok)
+	}
 	self.setVariableValues(variableObj)
 }
