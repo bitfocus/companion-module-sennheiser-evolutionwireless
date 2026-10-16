@@ -24,6 +24,7 @@ export function UpdateVariableDefinitions(self: evolutionInstance): void {
 		variables.push({ variableId: 'equalizer_mid', name: 'Equalizer Mid' })
 		variables.push({ variableId: 'equalizer_mid_high', name: 'Equalizer Mid High' })
 		variables.push({ variableId: 'equalizer_high', name: 'Equalizer High' })
+		variables.push({ variableId: 'firmware_revision', name: 'Firmware Revision' })
 	}
 
 	self.setVariableDefinitions(variables)

@@ -5,7 +5,7 @@
 | Setting     | Description                                                                               | Example       |
 | ----------- | ----------------------------------------------------------------------------------------- | ------------- |
 | Target IP   | IP Address of the device to be controlled                                                 | 192.168.33.86 |
-| Target Port | UDP Port									                                              |     53212     |
+| Target Port | UDP Port                                                                                  | 53212         |
 | Device Type | Type of Device, either SR (transmitter for IEM) or EM (receiver for wireless microphones) |               |
 | Update Rate | Rate at which meters and other values are updated from the Wireless unit                  |               |
 

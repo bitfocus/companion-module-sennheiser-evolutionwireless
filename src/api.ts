@@ -1,5 +1,21 @@
-import { InstanceStatus, UDPHelper, SharedUdpSocket, SharedUdpSocketEvents, CompanionVariableValues } from '@companion-module/base'
+import { InstanceStatus, CompanionVariableValues } from '@companion-module/base'
 import type { evolutionInstance } from './index.js'
+
+function checkMessage(self: evolutionInstance, msg: Buffer, rinfo: { address: string; port: number }): void {
+	try {
+		if (rinfo.address == self.config.host) {
+			if (self.config.verbose) {
+				self.log('debug', 'Got UDP message: ' + Buffer.from(msg).toString('hex'))
+			}
+			processData(self, Buffer.from(msg).toString())
+		} else {
+			//if the remote address isn't our configured host, it's just some other device
+			self.log('info', `Ignoring UDP message from unknown source: ${rinfo.address}:${rinfo.port}`)
+		}
+	} catch (err: any) {
+		self.log('error', `UDP error: ${err.message}`)
+	}
+}
 
 export function initConnection(self: evolutionInstance): void {
 	//create socket connection
@@ -9,36 +25,47 @@ export function initConnection(self: evolutionInstance): void {
 	}
 
 	if (self.config.host && self.config.host !== '') {
-		if (self.config.port === undefined) {
-			self.config.port = '53212'
-		}
+			if (self.config.port === undefined) {
+				self.config.port = '53212'
+			}
 
-		self.log('info', `[Sennheiser EW][${self.config.host}] Connecting via UDP Port ${self.config.port}`)
-		self.updateStatus(InstanceStatus.Connecting, 'Connecting') // Set status to Connecting
+			if (Number.isInteger(self.config.port)) {
+				self.updateStatus(InstanceStatus.BadConfig, 'Port missing or not an integer')
+			} else if (self.config.port === '') {
+				self.updateStatus(InstanceStatus.BadConfig, 'Port empty')
+			} else if (Number.isInteger(self.config.port)) {
+				self.updateStatus(InstanceStatus.BadConfig, 'Port is not an integer')
+			} else if (Number(self.config.port) <= 0 || Number(self.config.port) > 65535) {
+				self.updateStatus(InstanceStatus.BadConfig, 'Port is out of range, should be between 1 and 65535 (inclusive)')
+			} else {
+				self.log('info', `[Sennheiser EW][${self.config.host}] Connecting via UDP Port ${self.config.port}`)
 
-		self._socket = self.createSharedUdpSocket('udp4', responseSocketEvents)
+				self._socket = self.createSharedUdpSocket('udp4', (msg, rinfo) => checkMessage(self, msg, rinfo))
+				self._socket.bind(self.config.port)
 
-		self._socket = new UDPHelper(self.config.host, parseInt(self.config.port), { bind_port: parseInt(self.config.port) })
+				self._socket.on('error', (err: any) => {
+					self.updateStatus(InstanceStatus.ConnectionFailure, err.message)
+					self.log('error', 'Network error: ' + err.message)
+				})
 
-		self._socket.on('error', (err: any) => {
-			self.updateStatus(InstanceStatus.ConnectionFailure, err.message)
-			self.log('error', 'Network error: ' + err.message)
-		})
+				// If we get data, thing should be good
+				self._socket.on('listening', () => {
+					self.updateStatus(InstanceStatus.Connecting)
+					startStatusSubscription(self)
+				})
 
-		// If we get data, thing should be good
-		self._socket.on('listening', () => {
-			self.updateStatus(InstanceStatus.Ok)
-			startStatusSubscription(self)
-		})
+				// This is an unfiltered duplicate from to the UDP port, but possibly not for us
+				// self._socket.on('message', (msg: Buffer) => {
+				// 	console.log('got data: ' + msg.toString())
+				// 	processData(self, msg.toString())
+				// })
 
-		self._socket.on('data', (msg: Buffer) => {
-			console.log('got data')
-			processData(self, msg.toString())
-		})
-
-		self._socket.on('status_change', (status: any, message: any) => {
-			console.log('status change', status, message)
-		})
+				self._socket.on('status_change', (status: any, message: any) => {
+					console.log('status change', status, message)
+				})
+			}
+	} else {
+		self.updateStatus(InstanceStatus.BadConfig, 'Host missing or empty')
 	}
 }
 
@@ -47,7 +74,7 @@ export function sendCommand(self: evolutionInstance, command: string): void {
 		self.log('debug', `[Sennheiser EW][${self.config.host}] Sending: ${command}`)
 	}
 
-	self._socket.send(`${command}\r`, self.config.host)
+	self._socket.send(`${command}\r`, Number(self.config.port), self.config.host)
 }
 
 export function startStatusSubscription(self: evolutionInstance): void {
@@ -90,8 +117,11 @@ export function processData(self: evolutionInstance, message: string): void {
 			}
 			variableObj['msg'] = line.replace('Msg', '').trim()
 		} else if (line.startsWith('Name')) {
-			self._deviceConfig.name = lineSplit[1].trim()
+			self._deviceConfig.name = line.replace('Name', '').trim()
 			variableObj['name'] = self._deviceConfig.name
+		} else if (line.startsWith('FirmwareRevision')) {
+			self._deviceConfig.firmwareRevision = lineSplit[1].trim()
+			variableObj['firmware_revision'] = self._deviceConfig.firmwareRevision
 		} else if (line.startsWith('Frequency')) {
 			self._deviceConfig.frequencyRaw = lineSplit[1].trim()
 			self._deviceConfig.frequency = `${self._deviceConfig.frequencyRaw.substring(
@@ -102,8 +132,15 @@ export function processData(self: evolutionInstance, message: string): void {
 		} else if (line.startsWith('Config')) {
 			let confVersion = parseInt(lineSplit[1].trim())
 			if (confVersion !== self._deviceConfigIndex) {
+				self.log(
+					'info',
+					`[Sennheiser EW][${self.config.host}] Got config index change from ${self._deviceConfigIndex} to ${confVersion}.`,
+				)
+				// Update our stored conf version
+				self._deviceConfigIndex = confVersion
 				sendCommand(self, 'Frequency')
 				sendCommand(self, 'Name')
+				sendCommand(self, 'FirmwareRevision')
 
 				if (self.config.deviceType === 'SR') {
 					sendCommand(self, 'Sensitivity')
@@ -155,5 +192,9 @@ export function processData(self: evolutionInstance, message: string): void {
 		}
 	}
 
+	// TODO: Debounce this so we only send it on change
+	if (Object.keys(variableObj).length > 0) {
+		self.updateStatus(InstanceStatus.Ok)
+	}
 	self.setVariableValues(variableObj)
 }
