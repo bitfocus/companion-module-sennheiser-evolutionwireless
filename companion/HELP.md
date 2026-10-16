@@ -1,5 +1,7 @@
 # companion-module-sennheiser-evolutionwireless
 
+The unit will need firmware v1.7.0 or newer for this module to work with it.
+
 ## Configuration
 
 | Setting     | Description                                                                               | Example       |
