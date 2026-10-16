@@ -53,7 +53,7 @@ export function UpdateActions(self: evolutionInstance): void {
 			},
 		],
 		callback: async (args) => {
-			let name = await self.parseVariablesInString(String(args.options.frequency || ''))
+			const name = await self.parseVariablesInString(String(args.options.name || ''))
 
 			sendCommand(self, `Name ${name}`)
 		},
@@ -85,7 +85,7 @@ export function UpdateActions(self: evolutionInstance): void {
 			},
 		],
 		callback: (args) => {
-			let cmd: string = `Frequency #${args.options.dir === 'up' ? '' : '-'}${args.options.steps}`
+			const cmd: string = `Frequency #${args.options.dir === 'up' ? '' : '-'}${args.options.steps}`
 			sendCommand(self, cmd)
 		},
 	}
@@ -103,7 +103,7 @@ export function UpdateActions(self: evolutionInstance): void {
 			},
 		],
 		callback: async (args) => {
-			let frequency = await self.parseVariablesInString(String(args.options.frequency || ''))
+			const frequency = await self.parseVariablesInString(String(args.options.frequency || ''))
 
 			sendCommand(self, `Frequency ${frequency.toString().replace('.', '').replace(',', '')}`)
 		},
@@ -135,7 +135,8 @@ export function UpdateActions(self: evolutionInstance): void {
 				},
 			],
 			callback: (args) => {
-				sendCommand(self, `Sensitivity #${args.options.dir === 'up' ? '' : '-'}${args.options.steps}`)
+				const cmd: string = `Sensitivity #${args.options.dir === 'up' ? '' : '-'}${args.options.steps}`
+				sendCommand(self, cmd)
 			},
 		}
 
