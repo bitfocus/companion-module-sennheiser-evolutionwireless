@@ -25,6 +25,6 @@
 		"entrypoint": "../dist/index.js"
 	},
 	"manufacturer": "Sennheiser",
-	"products": ["Evolution Wireless", "SR 2000", "SR 2050"],
+	"products": ["Evolution Wireless", "SR 2000 IEM", "SR 2050 IEM"],
 	"keywords": ["RF", "Sennheiser EW", "Sennheiser Evolution Wireless"]
 }
