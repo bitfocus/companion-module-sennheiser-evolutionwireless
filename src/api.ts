@@ -29,11 +29,9 @@ export function initConnection(self: evolutionInstance): void {
 			self.config.port = '53212'
 		}
 
-		if (Number.isInteger(self.config.port)) {
-			self.updateStatus(InstanceStatus.BadConfig, 'Port missing or not an integer')
-		} else if (self.config.port === '') {
+		if (self.config.port === '') {
 			self.updateStatus(InstanceStatus.BadConfig, 'Port empty')
-		} else if (Number.isInteger(self.config.port)) {
+		} else if (!Number.isInteger(self.config.port)) {
 			self.updateStatus(InstanceStatus.BadConfig, 'Port is not an integer')
 		} else if (Number(self.config.port) <= 0 || Number(self.config.port) > 65535) {
 			self.updateStatus(
@@ -57,7 +55,7 @@ export function initConnection(self: evolutionInstance): void {
 				startStatusSubscription(self)
 			})
 
-			// This is an unfiltered duplicate from to the UDP port, but possibly not for us
+			// This is an unfiltered duplicate from the UDP port, but possibly not for us
 			// self._socket.on('message', (msg: Buffer) => {
 			// 	console.log('got data: ' + msg.toString())
 			// 	processData(self, msg.toString())
