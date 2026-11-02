@@ -1,4 +1,4 @@
-import { InstanceBase, runEntrypoint, InstanceStatus, SomeCompanionConfigField } from '@companion-module/base'
+import { InstanceBase, runEntrypoint, SomeCompanionConfigField } from '@companion-module/base'
 import { GetConfigFields, type ModuleConfig } from './config.js'
 import { UpdateVariableDefinitions } from './variables.js'
 import { UpgradeScripts } from './upgrades.js'
@@ -22,13 +22,12 @@ export class evolutionInstance extends InstanceBase<ModuleConfig> {
 
 		this._muteState = false
 		this._deviceConfig = {}
-		this._deviceConfigIndex = 0
+		// Initialise this to -1 as it's a value it can recieve have from the device so is guaranteed to be different the first time
+		this._deviceConfigIndex = -1
 	}
 
 	async init(config: ModuleConfig): Promise<void> {
 		this.config = config
-
-		this.updateStatus(InstanceStatus.Ok)
 
 		this.updateActions() // export actions
 		this.updateFeedbacks() // export feedbacks
