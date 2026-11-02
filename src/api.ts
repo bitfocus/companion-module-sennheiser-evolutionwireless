@@ -101,10 +101,10 @@ export function processData(self: evolutionInstance, message: string): void {
 		self.log('debug', `[Sennheiser EW][${self.config.host}] Received: ${message}`)
 	}
 
-	let split = message.toString().split('\r')
+	const split = message.toString().split('\r')
 	for (let line of split) {
 		line = line.trim()
-		let lineSplit = line.split(' ')
+		const lineSplit = line.split(' ')
 		if (line.startsWith('Msg')) {
 			if (self.config.deviceType === 'SR') {
 				if (line.indexOf('AF_Peak') !== -1) {
@@ -130,7 +130,7 @@ export function processData(self: evolutionInstance, message: string): void {
 			)}.${self._deviceConfig.frequencyRaw.substring(3)}`
 			variableObj['frequency'] = self._deviceConfig.frequency
 		} else if (line.startsWith('Config')) {
-			let confVersion = parseInt(lineSplit[1].trim())
+			const confVersion = parseInt(lineSplit[1].trim())
 			if (confVersion !== self._deviceConfigIndex) {
 				self.log(
 					'info',
@@ -164,7 +164,7 @@ export function processData(self: evolutionInstance, message: string): void {
 
 				self._muteState = lineSplit[1] === '1'
 			} else if (line.startsWith('Sensitivity')) {
-				let sensitivity = parseInt(lineSplit[1].trim())
+				const sensitivity = parseInt(lineSplit[1].trim())
 				self._deviceConfig.sensitivity = sensitivity
 				variableObj['sensitivity'] = sensitivity.toString()
 			} else if (line.startsWith('Mode')) {
