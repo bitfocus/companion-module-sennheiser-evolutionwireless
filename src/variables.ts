@@ -2,7 +2,7 @@ import type { evolutionInstance } from './index.js'
 import { CompanionVariableDefinition } from '@companion-module/base'
 
 export function UpdateVariableDefinitions(self: evolutionInstance): void {
-	let variables: Array<CompanionVariableDefinition> = []
+	const variables: Array<CompanionVariableDefinition> = []
 
 	variables.push({ variableId: 'msg', name: 'Messages' })
 	variables.push({ variableId: 'name', name: 'Name' })
