@@ -42,7 +42,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'dropdown',
 			id: 'deviceType',
-			label: 'device type',
+			label: 'Device Type',
 			width: 6,
 			default: 'SR',
 			choices: [
@@ -86,7 +86,7 @@ export function GetConfigFields(): SomeCompanionConfigField[] {
 		{
 			type: 'checkbox',
 			id: 'verbose',
-			label: 'Verbose logging',
+			label: 'Verbose Logging',
 			width: 4,
 			default: false,
 		},

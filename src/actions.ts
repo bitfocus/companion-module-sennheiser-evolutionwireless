@@ -70,8 +70,8 @@ export function UpdateActions(self: evolutionInstance): void {
 				id: 'dir',
 				default: 'up',
 				choices: [
-					{ id: 'up', label: 'up' },
-					{ id: 'down', label: 'down' },
+					{ id: 'up', label: 'Up' },
+					{ id: 'down', label: 'Down' },
 				],
 			},
 			{
@@ -120,8 +120,8 @@ export function UpdateActions(self: evolutionInstance): void {
 					id: 'dir',
 					default: 'up',
 					choices: [
-						{ id: 'up', label: 'up' },
-						{ id: 'down', label: 'down' },
+						{ id: 'up', label: 'Up' },
+						{ id: 'down', label: 'Down' },
 					],
 				},
 				{
@@ -269,8 +269,8 @@ export function UpdateActions(self: evolutionInstance): void {
 					id: 'dir',
 					default: 'up',
 					choices: [
-						{ id: 'up', label: 'up' },
-						{ id: 'down', label: 'down' },
+						{ id: 'up', label: 'Up' },
+						{ id: 'down', label: 'Down' },
 					],
 				},
 				{
