@@ -7,6 +7,7 @@ export function UpdateVariableDefinitions(self: evolutionInstance): void {
 	variables.push({ variableId: 'msg', name: 'Messages' })
 	variables.push({ variableId: 'name', name: 'Name' })
 	variables.push({ variableId: 'frequency', name: 'Frequency' })
+	variables.push({ variableId: 'firmware_revision', name: 'Firmware Revision' })
 
 	if (self.config.deviceType === 'SR') {
 		variables.push({ variableId: 'af_peak_1', name: 'AF Peak 1' })
@@ -24,7 +25,6 @@ export function UpdateVariableDefinitions(self: evolutionInstance): void {
 		variables.push({ variableId: 'equalizer_mid', name: 'Equalizer Mid' })
 		variables.push({ variableId: 'equalizer_mid_high', name: 'Equalizer Mid High' })
 		variables.push({ variableId: 'equalizer_high', name: 'Equalizer High' })
-		variables.push({ variableId: 'firmware_revision', name: 'Firmware Revision' })
 	}
 
 	self.setVariableDefinitions(variables)
