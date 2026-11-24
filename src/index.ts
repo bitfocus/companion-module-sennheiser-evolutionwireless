@@ -43,6 +43,11 @@ export class evolutionInstance extends InstanceBase<ModuleConfig> {
 	async configUpdated(config: ModuleConfig): Promise<void> {
 		this.config = config
 
+		// Update the connection for the new config
+		this.updateActions()
+		this.updateFeedbacks()
+		this.updateVariableDefinitions()
+
 		this.initConnection()
 	}
 
